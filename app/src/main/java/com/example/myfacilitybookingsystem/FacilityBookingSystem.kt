@@ -1,0 +1,327 @@
+package com.example.myfacilitybookingsystem
+
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
+import bottomChooseBar
+import com.example.myfacilitybookingsystem.ui.theme.StaffRed
+import com.example.myfacilitybookingsystem.ui.theme.StudentBlue
+import com.example.myfacilitybookingsystem.userInterface.HomeScreen
+import com.example.myfacilitybookingsystem.userInterface.loginTheme.studentLoginScreen
+import com.example.myfacilitybookingsystem.rooms.repo.UsersRepo
+import com.example.myfacilitybookingsystem.userInterface.studentTheme.StudentMenuScreen
+import com.example.myfacilitybookingsystem.viewModel.UsersViewModel
+
+
+class UsersViewModelFactory(private val usersRepo: UsersRepo): ViewModelProvider.Factory {
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(UsersViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return UsersViewModel(usersRepo) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+enum class AppScreen {
+    // Main container
+    MainSystem,
+
+    // Tabs
+    HomeScreen,
+    StudentLoginScreen,
+    StaffLoginScreen,
+    AdminLoginScreen,
+
+    StudentScreen,
+    StaffScreen,
+    AdminScreen,
+
+    ForgotPassword,
+
+    // Details under Home tab
+    AnnouncementDetail,
+
+    // Student Screens
+    StudentBooking,
+    StudentBookingDetail,
+
+    // Staff Screens
+    StaffCheckBooking,
+    StaffApprove,
+
+    // Admin Screens
+    AdminAddFacility,
+    AdminManageUsers,
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBarScreen(
+    currentScreen: AppScreen
+) {
+    when(currentScreen) {
+        AppScreen.StudentLoginScreen -> {
+            TopAppBar(
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            text = "Student Login",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = StudentBlue,
+                    titleContentColor = Color.White
+                )
+            )
+        }
+
+        AppScreen.StaffLoginScreen -> {
+            TopAppBar(
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            text = "Staff Login",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = StaffRed,
+                    titleContentColor = Color.White
+                )
+            )
+        }
+
+        AppScreen.AdminLoginScreen -> {
+            TopAppBar(
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            text = "Admin Login",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White
+                )
+            )
+        }
+        else -> {}
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FBSApp(
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
+) {
+    val context = LocalContext.current
+
+    // App Database
+    val db = remember { AppDatabase.getInstance(context) }
+    // Repository
+    val usersRepo = remember { UsersRepo(db.usersDao()) }
+    // ViewModel
+    val usersViewModel: UsersViewModel = viewModel(
+        factory = UsersViewModelFactory(usersRepo)
+    )
+
+    // Compose 状态
+    var selectedIndex by remember { mutableStateOf(0) }
+    var studentId by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    val idValid by usersViewModel.idValid.collectAsState()
+    val currentUser by usersViewModel.currentUser.collectAsState()
+    val users by usersViewModel.users.collectAsState()
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = try {
+        AppScreen.valueOf(backStackEntry?.destination?.route ?: "")
+    } catch (e: Exception) {
+        AppScreen.MainSystem
+    }
+
+    Scaffold(
+        topBar = { TopBarScreen(currentScreen = currentScreen) },
+        bottomBar = {
+            val showBottomBar = currentScreen in listOf(
+                AppScreen.MainSystem,
+                AppScreen.HomeScreen,
+                AppScreen.StudentLoginScreen,
+                AppScreen.StaffLoginScreen,
+                AppScreen.AdminLoginScreen
+            )
+
+            if (showBottomBar) {
+                bottomChooseBar(
+                    selectedIndex = when (currentScreen) {
+                        AppScreen.MainSystem, AppScreen.HomeScreen -> 0
+                        AppScreen.StudentLoginScreen -> 1
+                        AppScreen.StaffLoginScreen -> 2
+                        AppScreen.AdminLoginScreen -> 3
+                        else -> 0
+                    },
+                    onItemSelected = { index ->
+                        when (index) {
+                            0 -> navController.navigate(AppScreen.HomeScreen.name)
+                            1 -> navController.navigate(AppScreen.StudentLoginScreen.name)
+                            2 -> navController.navigate(AppScreen.StaffLoginScreen.name)
+                            3 -> navController.navigate(AppScreen.AdminLoginScreen.name)
+                        }
+                        selectedIndex = index
+                    }
+                )
+            }
+        }
+    ) { innerPadding ->
+
+        NavHost(
+            navController = navController,
+            startDestination = AppScreen.MainSystem.name,
+            modifier = modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            navigation(
+                startDestination = AppScreen.HomeScreen.name,
+                route = AppScreen.MainSystem.name
+            ) {
+                composable(route = AppScreen.HomeScreen.name) {
+                    HomeScreen(
+                        onAnnouncementClick = {
+                            navController.navigate(AppScreen.AnnouncementDetail.name)
+                        }
+                    )
+                }
+
+                // Student Login Screen
+                composable(route = AppScreen.StudentLoginScreen.name) {
+                    studentLoginScreen(
+                        studentId = studentId,
+                        onStudIdChange = {
+                            studentId = it
+                            usersViewModel.checkStudentId(it)
+                        },
+                        idValid = idValid,
+                        password = password,
+                        onPasswordChange = { password = it },
+                        showLoginError = idValid == false,
+                        onLoginClick = {
+                            usersViewModel.login(studentId, password) { success ->
+                                if (success) {
+                                    navController.navigate(AppScreen.StudentScreen.name){
+                                        popUpTo(AppScreen.StudentLoginScreen.name) { inclusive = true }
+                                    }
+                                }
+                            }
+                        },
+                        onForgotPassClick = {
+                            navController.navigate(AppScreen.ForgotPassword.name)
+                        }
+                    )
+                }
+
+                // Student Main Screen
+                composable(route = AppScreen.StudentScreen.name) {
+                    var logOutConfirm by rememberSaveable { mutableStateOf(false) }
+
+                    if (logOutConfirm) {
+                        AlertDialog(
+                            onDismissRequest = { logOutConfirm = false },
+                            title = { Text("Confirm Logout") },
+                            text = { Text("Are you sure you want to logout?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    logOutConfirm = false
+                                    usersViewModel.logout()
+                                    navController.navigate(AppScreen.MainSystem.name)
+                                }) { Text("Yes") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { logOutConfirm = false }) { Text("No") }
+                            },
+                            properties = DialogProperties(dismissOnClickOutside = false)
+                        )
+                    }
+
+                    StudentMenuScreen(
+                        name = currentUser?.username ?: "",
+                        studentId = currentUser?.loginId ?: "",
+                        email = currentUser?.email ?: "",
+                        onLogoutClick = { logOutConfirm = true },
+                        onMyBookingClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        },
+                        onFacilityBookingClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        },
+                        onFeedbackClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        },
+                        onSettingsClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+

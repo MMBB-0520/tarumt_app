@@ -179,7 +179,7 @@ fun AnnouncementCard(
 
                 // Info Icon (Your PNG)
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_info),
+                    painter = painterResource(id = R.drawable.ic_visibilityoff),
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(20.dp)
@@ -200,7 +200,7 @@ fun AnnouncementCard(
                 )
 
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_info),//R.drawable.ic_chevron_right
+                    painter = painterResource(id = R.drawable.ic_visibilityoff),//R.drawable.ic_chevron_right
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(22.dp)

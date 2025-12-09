@@ -1,21 +1,19 @@
 package com.example.myfacilitybookingsystem.userInterface.loginTheme
 
-import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
@@ -32,13 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
@@ -48,119 +42,93 @@ import androidx.compose.ui.unit.sp
 import com.example.myfacilitybookingsystem.R
 import com.example.myfacilitybookingsystem.ui.theme.Background
 import com.example.myfacilitybookingsystem.ui.theme.BlueMain
-import com.example.myfacilitybookingsystem.ui.theme.CheckGreen
 import com.example.myfacilitybookingsystem.ui.theme.ErrorRed
 import com.example.myfacilitybookingsystem.ui.theme.ForgotBlue
-import com.example.myfacilitybookingsystem.ui.theme.TARRed
-import com.example.myfacilitybookingsystem.ui.theme.UMTBlue
-import com.example.myfacilitybookingsystem.userInterface.HomeScreen
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun studentLoginScreen(
-    onLoginSuccess: () -> Unit = {},
-    onForgotPassClick: () -> Unit = {},
-    bottomBar: @Composable () -> Unit = {}
+    studentId: String,
+    onStudIdChange: (String) -> Unit,
+    idValid: Boolean?,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    showLoginError: Boolean,
+    onLoginClick: () -> Unit,
+    onForgotPassClick: () -> Unit
 ) {
-    var studentId by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-
-    var idValid by remember { mutableStateOf<Boolean?>(null) }   // null = default, true = check, false = x
-    var showLoginError by remember { mutableStateOf(false) }
-
-    // Regex Example (you可换自己的)
-    val idRegex = Regex("^[A-Z]{8}\\d{5}\$")
-
-    fun validateId(input: String) {
-        idValid = idRegex.matches(input)
-    }
 
     Column(
         modifier = Modifier
+            .fillMaxWidth()
             .background(Background)
-            .padding(24.dp)
+            .padding(16.dp)
     ) {
-
         Image(
-            painter = painterResource(id = R.drawable.tarumt), // 图片资源
+            painter = painterResource(id = R.drawable.tarumt),
             contentDescription = "Logo",
             modifier = Modifier
-                .size(400.dp)
+                .heightIn(350.dp)
                 .align(Alignment.CenterHorizontally)
         )
 
-        // Student ID TextField
-        OutlinedTextField(
-            value = studentId,
-            onValueChange = {
-                studentId = it
-                validateId(it)
-                showLoginError = false
-            },
-            leadingIcon = {
-                // Default user icon
-                val iconTint = when (idValid) {
-                    true -> CheckGreen
-                    false -> ErrorRed
-                    else -> Color.Gray
-                }
+        Spacer(modifier = Modifier.height(16.dp))
 
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    tint = iconTint
-                )
+        // Student ID
+        OutlinedTextField(
+            label = { Text("Student ID") },
+            value = studentId,
+            onValueChange = onStudIdChange,
+            leadingIcon = {
+                Icon(Icons.Outlined.Person,
+                    contentDescription = "ID Icon",
+                    tint = Color.Black)
             },
             trailingIcon = {
                 when (idValid) {
                     true -> Icon(
-                        painterResource(id = R.drawable.ic_checked_user),
-                        contentDescription = null
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Valid",
+                        tint = Color.Green
                     )
                     false -> Icon(
-                        painterResource(id = R.drawable.ic_denied),
-                        contentDescription = null
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Invalid",
+                        tint = Color.Red
                     )
-                    else -> {}
+                    null -> {} // 不显示
                 }
             },
-            isError = showLoginError,
-            placeholder = { Text("Student ID") },
+            singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Password TextField
+        // Password
         OutlinedTextField(
+            label = { Text("Password") },
             value = password,
-            onValueChange = {
-                password = it
-                showLoginError = false
-            },
+            onValueChange = onPasswordChange,
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Lock,
-                    contentDescription = "Lock Outline",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
-                )
+                Icon(Icons.Outlined.Lock,
+                    contentDescription = "Lock Icon",
+                    tint = Color.Black)
             },
             trailingIcon = {
-                val icon = if (showPassword) R.drawable.ic_visibilityoff else R.drawable.ic_visibility
+                val iconRes = if (showPassword) R.drawable.ic_visibility else R.drawable.ic_visibilityoff
                 IconButton(onClick = { showPassword = !showPassword }) {
                     Icon(
-                        painter = painterResource(id = icon),
-                        contentDescription = "Toggle Password Visibility"
+                        painter = painterResource(id = iconRes),
+                        contentDescription = "Toggle Password",
+                        modifier = Modifier
+                            .size(28.dp)
                     )
-
                 }
             },
+            singleLine = true,
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            placeholder = { Text("Password") },
-            isError = showLoginError,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
@@ -176,23 +144,14 @@ fun studentLoginScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // LOGIN BUTTON
         Button(
-            onClick = {
-                if (idValid == true && password.length >= 8) {
-                    onLoginSuccess()
-                } else {
-                    showLoginError = true
-                }
-            },
+            onClick = onLoginClick,
             colors = ButtonDefaults.buttonColors(containerColor = BlueMain),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(57.dp),
             shape = RoundedCornerShape(20.dp)
-        ) {
-            Text("Login", fontSize = 18.sp, color = Color.White)
-        }
+        ) { Text("Login", fontSize = 18.sp, color = Color.White) }
 
         Spacer(modifier = Modifier.height(15.dp))
 
@@ -205,20 +164,20 @@ fun studentLoginScreen(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .clickable { onForgotPassClick() }
-
         )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Bottom bar placeholder
-        bottomBar()
     }
 }
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
     studentLoginScreen(
-        onLoginSuccess = {},
-        bottomBar = {}
+        showLoginError = false,
+        onLoginClick = {},
+        onForgotPassClick = {},
+        studentId = "",
+        onStudIdChange = {},
+        password = "",
+        onPasswordChange = {},
+        idValid = null
     )
 }
