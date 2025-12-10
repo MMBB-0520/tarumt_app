@@ -1,19 +1,13 @@
 package com.example.myfacilitybookingsystem
 
-import android.R.attr.password
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,16 +42,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import bottomChooseBar
+import com.example.myfacilitybookingsystem.rooms.repo.UsersRepo
 import com.example.myfacilitybookingsystem.ui.theme.StaffRed
 import com.example.myfacilitybookingsystem.ui.theme.StudentBlue
 import com.example.myfacilitybookingsystem.userInterface.HomeScreen
-import com.example.myfacilitybookingsystem.userInterface.loginTheme.studentLoginScreen
-import com.example.myfacilitybookingsystem.rooms.repo.UsersRepo
 import com.example.myfacilitybookingsystem.userInterface.loginTheme.StaffLoginScreen
+import com.example.myfacilitybookingsystem.userInterface.loginTheme.studentLoginScreen
 import com.example.myfacilitybookingsystem.userInterface.staffTheme.StaffMenuScreen
-import com.example.myfacilitybookingsystem.userInterface.studentTheme.AvailabilityChartScreen
 import com.example.myfacilitybookingsystem.userInterface.studentTheme.FacilityBookScreen
-import com.example.myfacilitybookingsystem.userInterface.studentTheme.FacilityBookingDetailScreen
 import com.example.myfacilitybookingsystem.userInterface.studentTheme.StudentMenuScreen
 import com.example.myfacilitybookingsystem.viewModel.UsersViewModel
 
@@ -121,6 +113,15 @@ enum class AppScreen {
     CITCTimetable,
     LibraryTimetable,
     SportsTimetable,
+
+    // KK check in
+    CheckInManual,
+    CheckInBarcode,
+    CheckInSuccess,
+
+    CheckOutManual,
+    CheckOutBarcode,
+    CheckOutSuccess,
 
 }
 
@@ -230,6 +231,72 @@ fun TopBarScreen(
                 )
             )
         }
+        AppScreen.CheckInManual,AppScreen.CheckInBarcode,AppScreen.CheckInSuccess -> {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = hasPopBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+
+                        )
+                    }
+                },
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            text = "Check-In",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White
+                )
+            )
+        }
+        AppScreen.CheckOutManual,AppScreen.CheckOutBarcode,AppScreen.CheckOutSuccess -> {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = hasPopBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+
+                        )
+                    }
+                },
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            text = "Check-Out",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White
+                )
+            )
+        }
         else -> {}
     }
 }
@@ -260,6 +327,7 @@ fun FBSApp(
 
     val staffIdValid by usersViewModel.staffIdValid.collectAsState()
     val studentIdValid by usersViewModel.studentIdValid.collectAsState()
+    val idValid by usersViewModel.idValid.collectAsState()
     val showLoginError by usersViewModel.showLoginError.collectAsState()
     val currentUser by usersViewModel.currentUser.collectAsState()
     val users by usersViewModel.users.collectAsState()
@@ -492,25 +560,20 @@ fun FBSApp(
                         }
                     )
                 }
-
-
-
-
-
-                // Admin Login Screen
-                composable(route = AppScreen.AdminLoginScreen.name) {
-                }
-                // Admin Main Screen
-                composable(route = AppScreen.AdminScreen.name) {
-                }
                 // Forgot Password Screen
                 composable(route = AppScreen.ForgotPassword.name) {
                 }
 
-                composable(route = AppScreen.AnnouncementDetail.name) {
-
+                // Admin Login Screen
+                composable(route = AppScreen.AdminLoginScreen.name) {
                 }
 
+                // For Jayla
+                // Admin Main Screen
+                composable(route = AppScreen.AdminScreen.name) {
+                }
+                composable(route = AppScreen.AnnouncementDetail.name) {
+                }
                 composable(route = AppScreen.StudentBookingDetail.name) {
                 }
                 composable(route = AppScreen.StaffCheckBooking.name) {
@@ -538,7 +601,6 @@ fun FBSApp(
 
                 // For Vicky
                 composable(route = AppScreen.AdminViewReview.name) {
-
                 }
                 composable(route = AppScreen.AdminReviewDetail.name) {
                 }
@@ -549,6 +611,20 @@ fun FBSApp(
                 composable(route = AppScreen.StaffViewReview.name) {
                 }
                 composable(route = AppScreen.StaffAddReview.name) {
+                }
+
+                // For Kaken
+                composable(route = AppScreen.CheckInManual.name) {
+                }
+                composable(route = AppScreen.CheckInBarcode.name){
+                }
+                composable(route = AppScreen.CheckInSuccess.name) {
+                }
+                composable(route = AppScreen.CheckOutManual.name) {
+                }
+                composable(route = AppScreen.CheckOutBarcode.name) {
+                }
+                composable(route = AppScreen.CheckOutSuccess.name) {
                 }
             }
         }
