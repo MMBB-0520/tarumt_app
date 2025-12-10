@@ -1,5 +1,6 @@
 package com.example.myfacilitybookingsystem
 
+import android.R.attr.password
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
@@ -11,8 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -96,13 +102,35 @@ enum class AppScreen {
     AdminAddFacility,
     AdminManageUsers,
 
+    // Wei Qi Review
+    AdminViewReview,
+    AdminReviewDetail,
+
+    StudentViewReview,
+    StudentAddReview,
+
+    StaffViewReview,
+    StaffAddReview,
+
+
+    // Regina booking
+    CITCBooking,
+    LibraryBooking,
+    SportsBooking,
+
+    CITCTimetable,
+    LibraryTimetable,
+    SportsTimetable,
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarScreen(
-    currentScreen: AppScreen
-) {
+    currentScreen: AppScreen,
+    hasPopBack: () -> Unit
+
+    ) {
     when(currentScreen) {
         AppScreen.StudentLoginScreen -> {
             TopAppBar(
@@ -169,6 +197,39 @@ fun TopBarScreen(
                 )
             )
         }
+        AppScreen.StudentBooking ->{
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = hasPopBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+
+                        )
+                    }
+                },                
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            text = "Facility Booking",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 24.sp
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Blue,
+                    titleContentColor = Color.White
+                )
+            )
+        }
         else -> {}
     }
 }
@@ -194,9 +255,12 @@ fun FBSApp(
     // Compose 状态
     var studentId by remember { mutableStateOf("") }
     var staffId by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var studentPwd by remember { mutableStateOf("") }
+    var staffPwd by remember { mutableStateOf("") }
 
-    val idValid by usersViewModel.idValid.collectAsState()
+    val staffIdValid by usersViewModel.staffIdValid.collectAsState()
+    val studentIdValid by usersViewModel.studentIdValid.collectAsState()
+    val showLoginError by usersViewModel.showLoginError.collectAsState()
     val currentUser by usersViewModel.currentUser.collectAsState()
     val users by usersViewModel.users.collectAsState()
 
@@ -208,7 +272,10 @@ fun FBSApp(
     }
 
     Scaffold(
-        topBar = { TopBarScreen(currentScreen = currentScreen) },
+        topBar = { TopBarScreen(
+            currentScreen = currentScreen,
+            hasPopBack = {navController.popBackStack()}
+        ) },
         bottomBar = {
             val showBottomBar = currentScreen in listOf(
                 AppScreen.MainSystem,
@@ -267,12 +334,12 @@ fun FBSApp(
                             studentId = it
                             usersViewModel.checkUserId(it, role = "Student")
                         },
-                        idValid = idValid,
-                        password = password,
-                        onPasswordChange = { password = it },
-                        showLoginError = idValid == false,
+                        idValid = studentIdValid,
+                        password = studentPwd,
+                        onPasswordChange = { studentPwd = it },
+                        showLoginError = showLoginError,
                         onLoginClick = {
-                            usersViewModel.login(studentId, password ,"Student") { success ->
+                            usersViewModel.login(studentId, studentPwd ,"Student") { success ->
                                 if (success) {
                                     navController.navigate(AppScreen.StudentScreen.name) {
                                         popUpTo(AppScreen.StudentLoginScreen.name) {
@@ -332,18 +399,19 @@ fun FBSApp(
                 }
                 // Staff Login Screen
                 composable(route = AppScreen.StaffLoginScreen.name) {
+
                     StaffLoginScreen(
                         staffId = staffId,
                         onStaffIdChange = {
                             staffId = it
                             usersViewModel.checkUserId(it, role = "Staff")
                         },
-                        idValid = idValid,
-                        password = password,
-                        onPasswordChange = { password = it },
-                        showLoginError = idValid == false,
+                        idValid = staffIdValid,
+                        password = staffPwd,
+                        onPasswordChange = { staffPwd = it },
+                        showLoginError = showLoginError,
                         onLoginClick = {
-                            usersViewModel.login(staffId, password,"Staff") { success ->
+                            usersViewModel.login(staffId, staffPwd,"Staff") { success ->
                                 if (success) {
                                     navController.navigate(AppScreen.StaffScreen.name) {
                                         popUpTo(AppScreen.StaffLoginScreen.name) {
@@ -401,25 +469,30 @@ fun FBSApp(
                     )
 
                 }
-                composable(route = "FacilityBookingDetail/{facilityName}") { backStackEntry ->
-                    val facilityName = backStackEntry.arguments?.getString("facilityName") ?: ""
+                composable(route = AppScreen.StudentBooking.name) {
 
-                    FacilityBookingDetailScreen(facilityName = facilityName) {
-                        navController.popBackStack()
-                    }
-                }
-
-                composable(route = "AvailabilityChart/{selectedVenue}") { backStackEntry ->
-                    val venue = backStackEntry.arguments?.getString("selectedVenue") ?: ""
-                    var selectedDate by rememberSaveable { mutableStateOf("") }
-                    var selectedVenueState by rememberSaveable { mutableStateOf(venue) }
-
-                    AvailabilityChartScreen(
-                        navController = navController,
-                        selectedVenue = selectedVenueState,
-                        onBack = { navController.popBackStack() }
+                    FacilityBookScreen(
+                        onCITCABClick = {
+                            navController.navigate(AppScreen.CITCBooking.name)
+                        },
+                        onLibraryABClick = {
+                            navController.navigate(AppScreen.LibraryBooking.name)
+                        },
+                        onSportsABClick = {
+                            navController.navigate(AppScreen.SportsBooking.name)
+                        },
+                        onCITCTTClick = {
+                            navController.navigate(AppScreen.CITCTimetable.name)
+                        },
+                        onLibraryTTClick = {
+                            navController.navigate(AppScreen.LibraryTimetable.name)
+                        },
+                        onSportsTTClick = {
+                            navController.navigate(AppScreen.SportsTimetable.name)
+                        }
                     )
                 }
+
 
 
 
@@ -434,7 +507,49 @@ fun FBSApp(
                 composable(route = AppScreen.ForgotPassword.name) {
                 }
 
+                composable(route = AppScreen.AnnouncementDetail.name) {
 
+                }
+
+                composable(route = AppScreen.StudentBookingDetail.name) {
+                }
+                composable(route = AppScreen.StaffCheckBooking.name) {
+                }
+                composable(route = AppScreen.StaffApprove.name) {
+                }
+                composable(route = AppScreen.AdminAddFacility.name) {
+                }
+                composable(route = AppScreen.AdminManageUsers.name) {
+                }
+
+                // For Regina
+                composable(route = AppScreen.CITCBooking.name) {
+                }
+                composable(route = AppScreen.LibraryBooking.name) {
+                }
+                composable(route = AppScreen.SportsBooking.name) {
+                }
+                composable(route = AppScreen.CITCTimetable.name) {
+                }
+                composable(route = AppScreen.LibraryTimetable.name) {
+                }
+                composable(route = AppScreen.SportsTimetable.name) {
+                }
+
+                // For Vicky
+                composable(route = AppScreen.AdminViewReview.name) {
+
+                }
+                composable(route = AppScreen.AdminReviewDetail.name) {
+                }
+                composable(route = AppScreen.StudentViewReview.name) {
+                }
+                composable(route = AppScreen.StudentAddReview.name) {
+                }
+                composable(route = AppScreen.StaffViewReview.name) {
+                }
+                composable(route = AppScreen.StaffAddReview.name) {
+                }
             }
         }
 

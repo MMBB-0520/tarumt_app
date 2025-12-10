@@ -41,69 +41,41 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FacilityBookScreen(
-    navController: NavController,
-    onBack: () -> Unit
+    onCITCABClick: () -> Unit,
+    onLibraryABClick: () -> Unit,
+    onSportsABClick: () -> Unit,
+    onCITCTTClick: () -> Unit,
+    onLibraryTTClick: () -> Unit,
+    onSportsTTClick: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    Icon(
-                        Icons.Default.ArrowBack,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .clickable { onBack() }
-                    )
-                },
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Facility Booking")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0D47A1),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
-            )
-        }
-    ) { padding ->
-        Column(Modifier.padding(padding).padding(16.dp)) {
-            TabRow(
-                selectedTabIndex = 0,
-                contentColor = Color.White
-            ) {
-                Tab(true, onClick = {}) { Text("Facility Booking") }
-                Tab(false, onClick = {}) { Text("My Bookings") }
-            }
 
-            Spacer(Modifier.height(16.dp))
-
-            FacilityItemUI("Cyber Centre Discussion Room") {
-                navController.navigate("FacilityBookingDetail/CyberCentre")
-            }
-            FacilityItemUI("Library Discussion Room") {
-                navController.navigate("FacilityBookingDetail/Library")
-            }
-            FacilityItemUI("Sports Facilities") {
-                navController.navigate("FacilityBookingDetail/Sports")
-            }
+    Column(
+        Modifier
+            .padding(16.dp)
+    ) {
+        TabRow(
+            selectedTabIndex = 0,
+            contentColor = Color.White
+        ) {
+            Tab(true, onClick = {}) { Text("Facility Booking") }
+            Tab(false, onClick = {}) { Text("My Bookings") }
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        FacilityItemUI("Cyber Centre Discussion Room", onCITCABClick, onCITCTTClick)
+        FacilityItemUI("Library Discussion Room", onLibraryABClick, onLibraryTTClick)
+        FacilityItemUI("Sports Facilities", onSportsABClick, onSportsTTClick)
     }
 }
 
 @Composable
-fun FacilityItemUI(name: String, onClick: () -> Unit) {
+fun FacilityItemUI(name: String, onAddBookingClick: () -> Unit, onViewTTClick: () -> Unit) {
     Card(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { onClick() }
+
     ) {
         Row(
             Modifier.padding(16.dp),
@@ -115,14 +87,18 @@ fun FacilityItemUI(name: String, onClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = "Add",
                 tint = Color.Unspecified,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onAddBookingClick() }
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 painter = painterResource(id = R.drawable.time),
                 contentDescription = "Time",
                 tint = Color.Unspecified,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onViewTTClick() }
             )
         }
     }

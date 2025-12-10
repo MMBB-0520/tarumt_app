@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myfacilitybookingsystem.rooms.entity.Booking
 import com.example.myfacilitybookingsystem.userInterface.studentTheme.AvailabilityChartScreen
 
 @OptIn(ExperimentalMaterial3Api::class)

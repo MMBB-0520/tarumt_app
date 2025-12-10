@@ -25,8 +25,13 @@ class UsersViewModel(
     val currentUser: StateFlow<Users?> = _currentUser
 
     // 学号/ID 是否存在
-    private val _idValid = MutableStateFlow<Boolean?>(null)
-    val idValid: StateFlow<Boolean?> = _idValid
+    private val _studentIdValid = MutableStateFlow<Boolean?>(null)
+    val studentIdValid: StateFlow<Boolean?> = _studentIdValid
+
+    private val _staffIdValid = MutableStateFlow<Boolean?>(null)
+    val staffIdValid: StateFlow<Boolean?> = _staffIdValid
+
+
 
     // 错误显示
     private val _showLoginError = MutableStateFlow(false)
@@ -55,19 +60,23 @@ class UsersViewModel(
     }
 
     /** 检查用户ID是否存在 */
+
     fun checkUserId(input: String, role: String) {
         if (input.isEmpty()) {
-            _idValid.value = null
+            if (role == "Student") _studentIdValid.value = null
+            else if (role == "Staff") _staffIdValid.value = null
             return
         }
 
         viewModelScope.launch(Dispatchers.IO) {
             val exists = usersRepo.checkUserExistsWithRole(input, role)
             withContext(Dispatchers.Main) {
-                _idValid.value = exists
+                if (role == "Student") _studentIdValid.value = exists
+                else if (role == "Staff") _staffIdValid.value = exists
             }
         }
     }
+
 
     /** 获取单个用户信息 */
     fun getUserByLoginId(loginId: String, onSuccess: (Users?) -> Unit) {

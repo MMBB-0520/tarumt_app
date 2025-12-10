@@ -1,4 +1,4 @@
-package com.example.myfacilitybookingsystem.userInterface.studentTheme
+package com.example.myfacilitybookingsystem.rooms.entity
 
 data class Booking(
     val facility: String,
