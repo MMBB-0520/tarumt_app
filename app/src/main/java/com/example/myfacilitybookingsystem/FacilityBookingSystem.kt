@@ -42,6 +42,8 @@ import com.example.myfacilitybookingsystem.ui.theme.StudentBlue
 import com.example.myfacilitybookingsystem.userInterface.HomeScreen
 import com.example.myfacilitybookingsystem.userInterface.loginTheme.studentLoginScreen
 import com.example.myfacilitybookingsystem.rooms.repo.UsersRepo
+import com.example.myfacilitybookingsystem.userInterface.loginTheme.StaffLoginScreen
+import com.example.myfacilitybookingsystem.userInterface.staffTheme.StaffMenuScreen
 import com.example.myfacilitybookingsystem.userInterface.studentTheme.StudentMenuScreen
 import com.example.myfacilitybookingsystem.viewModel.UsersViewModel
 
@@ -182,8 +184,8 @@ fun FBSApp(
     )
 
     // Compose 状态
-    var selectedIndex by remember { mutableStateOf(0) }
     var studentId by remember { mutableStateOf("") }
+    var staffId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val idValid by usersViewModel.idValid.collectAsState()
@@ -224,7 +226,6 @@ fun FBSApp(
                             2 -> navController.navigate(AppScreen.StaffLoginScreen.name)
                             3 -> navController.navigate(AppScreen.AdminLoginScreen.name)
                         }
-                        selectedIndex = index
                     }
                 )
             }
@@ -256,17 +257,19 @@ fun FBSApp(
                         studentId = studentId,
                         onStudIdChange = {
                             studentId = it
-                            usersViewModel.checkStudentId(it)
+                            usersViewModel.checkUserId(it, role = "Student")
                         },
                         idValid = idValid,
                         password = password,
                         onPasswordChange = { password = it },
                         showLoginError = idValid == false,
                         onLoginClick = {
-                            usersViewModel.login(studentId, password) { success ->
+                            usersViewModel.login(studentId, password ,"Student") { success ->
                                 if (success) {
-                                    navController.navigate(AppScreen.StudentScreen.name){
-                                        popUpTo(AppScreen.StudentLoginScreen.name) { inclusive = true }
+                                    navController.navigate(AppScreen.StudentScreen.name) {
+                                        popUpTo(AppScreen.StudentLoginScreen.name) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             }
@@ -306,7 +309,7 @@ fun FBSApp(
                         email = currentUser?.email ?: "",
                         onLogoutClick = { logOutConfirm = true },
                         onMyBookingClick = {
-                            navController.navigate(AppScreen.StudentBooking.name)
+                            navController.navigate(AppScreen.StudentBookingDetail.name)
                         },
                         onFacilityBookingClick = {
                             navController.navigate(AppScreen.StudentBooking.name)
@@ -319,8 +322,91 @@ fun FBSApp(
                         }
                     )
                 }
+                // Staff Login Screen
+                composable(route = AppScreen.StaffLoginScreen.name) {
+                    StaffLoginScreen(
+                        staffId = staffId,
+                        onStaffIdChange = {
+                            staffId = it
+                            usersViewModel.checkUserId(it, role = "Staff")
+                        },
+                        idValid = idValid,
+                        password = password,
+                        onPasswordChange = { password = it },
+                        showLoginError = idValid == false,
+                        onLoginClick = {
+                            usersViewModel.login(staffId, password,"Staff") { success ->
+                                if (success) {
+                                    navController.navigate(AppScreen.StaffScreen.name) {
+                                        popUpTo(AppScreen.StaffLoginScreen.name) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        onForgotPassClick = {
+                            navController.navigate(AppScreen.ForgotPassword.name)
+                        }
+                    )
+                }
+                // Staff Main Screen
+                composable(route = AppScreen.StaffScreen.name) {
+                    var logOutConfirm by rememberSaveable { mutableStateOf(false) }
+
+                    if (logOutConfirm) {
+                        AlertDialog(
+                            onDismissRequest = { logOutConfirm = false },
+                            title = { Text("Confirm Logout") },
+                            text = { Text("Are you sure you want to logout?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    logOutConfirm = false
+                                    usersViewModel.logout()
+                                    navController.navigate(AppScreen.MainSystem.name)
+                                }) { Text("Yes") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { logOutConfirm = false }) { Text("No") }
+                            },
+                            properties = DialogProperties(dismissOnClickOutside = false)
+                        )
+                    }
+
+                    StaffMenuScreen(
+                        name = currentUser?.username ?: "",
+                        staffId = currentUser?.loginId ?: "",
+                        email = currentUser?.email ?: "",
+                        onLogoutClick = { logOutConfirm = true },
+                        onMyBookingClick = {
+                            navController.navigate(AppScreen.StudentBookingDetail.name)
+                        },
+                        onFacilityBookingClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        },
+                        onFeedbackClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        },
+                        onSettingsClick = {
+                            navController.navigate(AppScreen.StudentBooking.name)
+                        }
+                    )
+
+                }
+                // Admin Login Screen
+                composable(route = AppScreen.AdminLoginScreen.name) {
+                }
+                // Admin Main Screen
+                composable(route = AppScreen.AdminScreen.name) {
+                }
+                // Forgot Password Screen
+                composable(route = AppScreen.ForgotPassword.name) {
+                }
+
+
             }
         }
+
     }
 }
 

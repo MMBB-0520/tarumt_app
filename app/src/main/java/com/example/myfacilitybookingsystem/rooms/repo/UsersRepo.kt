@@ -100,4 +100,10 @@ class UsersRepo(
     suspend fun checkUserExists(loginId: String): Boolean = withContext(Dispatchers.IO) {
         firestore.collection("users").document(loginId).get().await().exists()
     }
+
+    suspend fun checkUserExistsWithRole(loginId: String, role: String): Boolean {
+        // Room 查询
+        val user = usersDao.getUserByLoginId(loginId)
+        return user?.role == role
+    }
 }

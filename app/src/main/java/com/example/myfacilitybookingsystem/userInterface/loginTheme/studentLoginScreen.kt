@@ -100,6 +100,7 @@ fun studentLoginScreen(
                 }
             },
             singleLine = true,
+            isError = false,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
@@ -128,6 +129,7 @@ fun studentLoginScreen(
                 }
             },
             singleLine = true,
+            isError = showLoginError,
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)

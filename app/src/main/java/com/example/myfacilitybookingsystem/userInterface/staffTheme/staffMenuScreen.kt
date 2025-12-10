@@ -1,4 +1,5 @@
-package com.example.myfacilitybookingsystem.userInterface.studentTheme
+package com.example.myfacilitybookingsystem.userInterface.staffTheme
+
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,9 +34,9 @@ import com.example.myfacilitybookingsystem.ui.theme.Background
 import com.example.myfacilitybookingsystem.ui.theme.BlueMain
 
 @Composable
-fun StudentMenuScreen(
+fun StaffMenuScreen(
     name: String,
-    studentId: String,
+    staffId: String,
     email: String,
     onMyBookingClick: () -> Unit = {},
     onFacilityBookingClick: () -> Unit = {},
@@ -73,7 +74,7 @@ fun StudentMenuScreen(
                     Text(name,
                         color = Color.White,
                         fontSize = 18.sp)
-                    Text(studentId,
+                    Text(staffId,
                         color = Color.White,
                         fontSize = 14.sp)
                     Text(email,
@@ -144,13 +145,14 @@ fun LogoutButton(onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    StudentMenuScreen(
+    StaffMenuScreen(
         name = "John Doe",
-        studentId = "123456",
+        staffId = "123456",
         email = "william.henry.harrison@example-pet-store.com",
         onMyBookingClick = {},
         onFacilityBookingClick = {},
         onFeedbackClick = {},
         onSettingsClick = {},
+        onLogoutClick = {}
     )
 }

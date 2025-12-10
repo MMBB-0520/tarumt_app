@@ -28,6 +28,12 @@ class UsersViewModel(
     private val _idValid = MutableStateFlow<Boolean?>(null)
     val idValid: StateFlow<Boolean?> = _idValid
 
+    // 错误显示
+    private val _showLoginError = MutableStateFlow(false)
+
+    val showLoginError: StateFlow<Boolean> = _showLoginError
+
+
     // 所有用户列表 (Room 数据库)
     val users: StateFlow<List<Users>> =
         usersRepo.getAllUsers().stateIn(
@@ -49,15 +55,14 @@ class UsersViewModel(
     }
 
     /** 检查用户ID是否存在 */
-    fun checkStudentId(input: String) {
+    fun checkUserId(input: String, role: String) {
         if (input.isEmpty()) {
             _idValid.value = null
             return
         }
 
-        // 直接用 String
         viewModelScope.launch(Dispatchers.IO) {
-            val exists = usersRepo.checkUserExists(input)
+            val exists = usersRepo.checkUserExistsWithRole(input, role)
             withContext(Dispatchers.Main) {
                 _idValid.value = exists
             }
@@ -73,28 +78,28 @@ class UsersViewModel(
     }
 
     /** 登录 */
-    fun login(loginId: String, password: String, onResult: (Boolean) -> Unit) {
+    fun login(loginId: String, password: String, role: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             val user = usersRepo.getUserByLoginId(loginId)
-            if (user == null) {
+            if (user == null || user.role != role) {
+                _showLoginError.value = true
                 onResult(false)
                 return@launch
             }
 
             try {
-                // 使用 FirebaseAuth 登录
                 auth.signInWithEmailAndPassword(user.email, password).await()
                 _currentUser.value = user
-
-                // 登录成功后同步 Firebase 数据到 Room
+                _showLoginError.value = false
                 usersRepo.syncFromFirebase()
-
                 onResult(true)
             } catch (e: Exception) {
+                _showLoginError.value = true
                 onResult(false)
             }
         }
     }
+
 
     /** 登出 */
     fun logout() {
