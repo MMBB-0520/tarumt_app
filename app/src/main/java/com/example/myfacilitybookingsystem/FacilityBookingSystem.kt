@@ -327,7 +327,6 @@ fun FBSApp(
 
     val staffIdValid by usersViewModel.staffIdValid.collectAsState()
     val studentIdValid by usersViewModel.studentIdValid.collectAsState()
-    val idValid by usersViewModel.idValid.collectAsState()
     val showLoginError by usersViewModel.showLoginError.collectAsState()
     val currentUser by usersViewModel.currentUser.collectAsState()
     val users by usersViewModel.users.collectAsState()
